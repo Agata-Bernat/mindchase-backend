@@ -9,13 +9,14 @@ const csurf = require('csurf')
 /**Routing**/
 const indexRouter = require("./routes/index");
 const usersRouter = require('./routes/users');
-const corsesRouter = require('./routes/courses')
+const coursesRouter = require('./routes/courses')
 const chatroomRouter = require("./routes/chatrooms")
 const userRouter = require("./routes/users")
+const quizRouter = require("./routes/quiz")
 const { body } = require('express-validator');
 const cors = require('cors');
 
-require('dotenv').config({path:"./.env.development.local"})
+require('dotenv').config()
 
 /**CONNECT TO DB */
 const mongoURI = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_URL}`;
@@ -37,6 +38,10 @@ app.use(cors());
 //Bring in the routes
 app.use("/users", userRouter);
 app.use("/chatrooms", chatroomRouter);
+app.use("/courses", coursesRouter);
+app.use("/quiz", quizRouter)
+
+
 //Setup Error Handlers
 const errorHandlers = require("./handlers/errorHandlers");
 app.use(errorHandlers.notFound);
@@ -46,5 +51,6 @@ if (process.env.ENV === "DEVELOPMENT") {
 } else {
   app.use(errorHandlers.productionErrors);
 }
+
 
 module.exports = app;

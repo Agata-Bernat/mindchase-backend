@@ -62,39 +62,43 @@ exports.addUser = async (req, res, next) => {
   }
 };
 exports.register = async (req, res) => {
+  console.log("register")
   const { name, email, password } = req.body;
 
   const emailRegex = /@gmail.com|@yahoo.com|@hotmail.com|@live.com/;
+  try {
+    if (!emailRegex.test(email))
+      throw Error("Email address wrong syntax");
+    if (password.length < 6)
+      throw Error("Password must be atleast 6 characters long.");
 
-  if (!emailRegex.test(email))
-    throw Error("Email is not supported from your domain.");
-  if (password.length < 6)
-    throw Error("Password must be atleast 6 characters long.");
+    const userExists = await User.findOne({
+      email,
+    });
 
-  const userExists = await User.findOne({
-    email,
-  });
+    if (userExists) throw Error("User with same email already exits.");
 
-  if (userExists) throw Error("User with same email already exits.");
+    const user = new User({
+      name,
+      email,
+      password,
+    });
 
-  const user = new User({
-    name,
-    email,
-    password,
-  });
+    await user.save();
 
-  await user.save();
-
-  res.json({
-    message: "User [" + name + "] registered successfully!",
-  });
+    res.json({
+      message: "User [" + name + "] registered successfully!",
+    });
+  } catch (e) {
+    console.log(e)
+  }
+  
 };
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({
-    email, 
-  });
+  const user = await User.findOne({email});
+
   if (!user) throw Error("Email and Password did not match.");
   try {
     const match = bcrypt.compareSync(password, user.password);
@@ -104,9 +108,8 @@ exports.login = async (req, res) => {
         message: "Incorrect password",
       });
     }
-    
     const token = await jwt.sign({ id: user.id }, process.env.SECRET);
-    console.log(token)
+
     return res.json({
         message: "User logged in successfully!",
         token,
@@ -119,7 +122,7 @@ exports.login = async (req, res) => {
   
 };
 
-
+/** 
 exports.loginUser = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -142,3 +145,4 @@ exports.loginUser = async (req, res, next) => {
       next(e);
     }
   };
+  */
